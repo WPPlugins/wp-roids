@@ -1,0 +1,118 @@
+### BEGIN WP Roids - DO NOT REMOVE THIS LINE
+
+# Expires headers for older browsers
+
+<IfModule mod_expires.c>
+	<FilesMatch ".(bmp|ico|pdf|flv|jpg|jpeg|png|gif|js|css|gz|eot|opentype|otf|ttf|woff|woff2)$">
+		ExpiresActive On
+		ExpiresDefault "access plus 1 year"
+	</FilesMatch>
+	<FilesMatch ".(xml|txt|json)$">
+		ExpiresActive On
+		ExpiresDefault "access plus 2 days"
+	</FilesMatch>
+	<FilesMatch ".(html|htm)$">
+		ExpiresActive On
+		ExpiresDefault "access plus 5 minutes"
+	</FilesMatch>
+</IfModule>
+
+# Headers for newer browsers
+
+<IfModule mod_headers.c>
+	Header unset ETag
+	FileETag None
+	Header set Connection keep-alive
+	# 1 year
+	<FilesMatch ".(bmp|ico|pdf|flv|jpg|jpeg|png|gif|js|css|gz|eot|opentype|otf|ttf|woff|woff2)$">
+		Header set Cache-Control "max-age=31449600, public"
+	</FilesMatch>
+	# 2 DAYS
+	<FilesMatch ".(xml|txt|json)$">
+		Header set Cache-Control "max-age=172800, public, must-revalidate"
+	</FilesMatch>
+	# 1 HOUR
+	<FilesMatch ".(html|htm)$">
+		Header set Cache-Control "max-age=300, public"
+	</FilesMatch>
+	<FilesMatch "\.(js|css|xml|json|gz|html|htm)$">
+		Header append Vary: Accept-Encoding
+	</FilesMatch>
+	Header append Vary: User-Agent
+</IfModule>
+
+# Enable GZIP compression
+
+<IfModule mod_deflate.c>
+	AddOutputFilterByType DEFLATE application/atom+xml
+	AddOutputFilterByType DEFLATE application/javascript
+	AddOutputFilterByType DEFLATE application/json
+	AddOutputFilterByType DEFLATE application/ld+json
+	AddOutputFilterByType DEFLATE application/manifest+json
+	AddOutputFilterByType DEFLATE application/rdf+xml
+	AddOutputFilterByType DEFLATE application/rss+xml
+	AddOutputFilterByType DEFLATE application/schema+json
+	AddOutputFilterByType DEFLATE application/vnd.geo+json
+	AddOutputFilterByType DEFLATE application/vnd.ms-fontobject
+	AddOutputFilterByType DEFLATE application/x-font
+	AddOutputFilterByType DEFLATE application/x-font-opentype
+	AddOutputFilterByType DEFLATE application/x-font-otf
+	AddOutputFilterByType DEFLATE application/x-font-truetype
+	AddOutputFilterByType DEFLATE application/x-font-ttf
+	AddOutputFilterByType DEFLATE application/x-javascript
+	AddOutputFilterByType DEFLATE application/xhtml+xml
+	AddOutputFilterByType DEFLATE application/xml
+	AddOutputFilterByType DEFLATE application/x-web-app-manifest+json
+	AddOutputFilterByType DEFLATE font/eot
+	AddOutputFilterByType DEFLATE font/opentype
+	AddOutputFilterByType DEFLATE font/otf
+	AddOutputFilterByType DEFLATE font/ttf
+	AddOutputFilterByType DEFLATE font/woff
+	AddOutputFilterByType DEFLATE font/woff2
+	AddOutputFilterByType DEFLATE image/bmp
+	AddOutputFilterByType DEFLATE image/svg+xml
+	AddOutputFilterByType DEFLATE image/vnd.microsoft.icon
+	AddOutputFilterByType DEFLATE image/x-icon
+	AddOutputFilterByType DEFLATE text/cache-manifest
+	AddOutputFilterByType DEFLATE text/css
+	AddOutputFilterByType DEFLATE text/html
+	AddOutputFilterByType DEFLATE text/javascript
+	AddOutputFilterByType DEFLATE text/plain
+	AddOutputFilterByType DEFLATE text/vcard
+	AddOutputFilterByType DEFLATE text/vnd.rim.location.xloc
+	AddOutputFilterByType DEFLATE text/vtt
+	AddOutputFilterByType DEFLATE text/x-component
+	AddOutputFilterByType DEFLATE text/x-cross-domain-policy
+	AddOutputFilterByType DEFLATE text/xml
+</IfModule>
+
+## WP Roids rewrite rules
+
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+	RewriteBase [[WP_ROIDS_REWRITE_BASE]]/
+	AddDefaultCharset UTF-8
+
+	# Prevent hotlinking of images
+	
+	RewriteCond %{HTTP_REFERER} !^$
+	RewriteCond %{HTTP_REFERER} !^http(s)?://(www\.)?[[DOMAIN_NAME]] [NC]
+	RewriteRule \.(jpg|jpeg|png|gif)$ – [NC,F,L]
+
+	# Serve cache CSS and JS as PHP
+	
+	RewriteRule ^([[WP_ROIDS_ASSETS_CACHE]].*)\.(css|js) $1\.php [L]
+
+	# serve cached HTML file
+	
+	RewriteCond %{REQUEST_URI} !^.*[^/]$
+	RewriteCond %{REQUEST_URI} !^.*//.*$
+	RewriteCond %{REQUEST_METHOD} !POST
+	RewriteCond %{QUERY_STRING} !.*=.*
+	RewriteCond %{HTTP:Cookie} !^.*(comment_author_|wordpress_logged_in|wp-postpass_|woocommerce).*$
+	RewriteCond %{DOCUMENT_ROOT}/[[WP_ROIDS_FULL_POSTS_CACHE]]/$1/index.html -f [or]
+	RewriteCond [[WP_ROIDS_ALT_FULL_POSTS_CACHE]]/$1/index.html -f
+	RewriteRule ^(.*) "[[WP_ROIDS_POSTS_CACHE]]/$1/index.html" [L]
+</IfModule>
+
+### END WP Roids - DO NOT REMOVE THIS LINE
